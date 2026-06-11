@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 
 class ScannerOverlay extends StatelessWidget {
+  const ScannerOverlay({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         ColorFiltered(
           colorFilter: ColorFilter.mode(
-            Colors.black.withOpacity(0.5),
+            Colors.black.withValues(alpha: 0.5),
             BlendMode.srcOut,
           ),
           child: Stack(
             children: [
               Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.transparent,
                 ),
               ),

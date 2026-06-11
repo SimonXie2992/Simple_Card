@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:camera_macos/camera_macos.dart';
 import 'package:flutter/material.dart';
@@ -157,11 +156,13 @@ class _ScannerScreenState extends State<ScannerScreen>
   Future<void> _initCamera() async {
     final perm = await _scannerService.requestCameraPermission();
     if (perm != CameraPermissionResult.granted) {
-      if (mounted) setState(() {
-        _permissionDenied = true;
-        _permissionPermanentlyDenied = perm == CameraPermissionResult.permanentlyDenied;
-        _isCameraError = true;
-      });
+      if (mounted) {
+        setState(() {
+          _permissionDenied = true;
+          _permissionPermanentlyDenied = perm == CameraPermissionResult.permanentlyDenied;
+          _isCameraError = true;
+        });
+      }
       return;
     }
     setState(() { _permissionDenied = false; _permissionPermanentlyDenied = false; _isCameraError = false; });
@@ -425,8 +426,11 @@ class _ScannerScreenState extends State<ScannerScreen>
         if (_captureMode == 1) { // Continuous
           _continuousImages.add(path);
           setState(() { _view = _ViewState.camera; });
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Page ${_continuousImages.length} captured'), duration: const Duration(milliseconds: 800)));
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Page ${_continuousImages.length} captured'), duration: const Duration(milliseconds: 800)),
+            );
+          }
           return;
         }
 
@@ -464,8 +468,11 @@ class _ScannerScreenState extends State<ScannerScreen>
         setState(() { _view = _ViewState.camera; });
         _resetAutoCapture();
         _startStream();
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Page ${_continuousImages.length} captured'), duration: const Duration(milliseconds: 800)));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Page ${_continuousImages.length} captured'), duration: const Duration(milliseconds: 800)),
+          );
+        }
         return;
       }
 
@@ -552,8 +559,11 @@ class _ScannerScreenState extends State<ScannerScreen>
     try {
       final bytes = await File(path).readAsBytes();
       final String jsonStr = await platform.invokeMethod('processImage', bytes);
-      if (jsonStr.isNotEmpty && jsonStr != 'No text detected') _parseOcrResult(jsonStr);
-      else if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No text detected — fill in manually')));
+      if (jsonStr.isNotEmpty && jsonStr != 'No text detected') {
+        _parseOcrResult(jsonStr);
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No text detected — fill in manually')));
+      }
     } catch (e) { debugPrint('OCR error: $e'); }
     finally { if (mounted) setState(() => _view = _ViewState.cardReview); }
   }

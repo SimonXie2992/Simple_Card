@@ -15,20 +15,17 @@ class CardHolderScreen extends StatefulWidget {
 class _CardHolderScreenState extends State<CardHolderScreen> {
   int _selectedTab = 0;
   final TextEditingController _searchController = TextEditingController();
-  List<BusinessCard> _allCards = List.from(MockData.recentCards);
+  final List<BusinessCard> _allCards = List.from(MockData.recentCards);
   List<BusinessCard> _filteredCards = List.from(MockData.recentCards);
-  bool _isSearching = false;
 
   void _performSearch(String query) {
     if (query.isEmpty) {
       setState(() {
         _filteredCards = List.from(_allCards);
-        _isSearching = false;
       });
       return;
     }
     setState(() {
-      _isSearching = true;
       _filteredCards = _allCards.where((c) => c.matchesQuery(query)).toList();
     });
   }
@@ -56,14 +53,18 @@ class _CardHolderScreenState extends State<CardHolderScreen> {
               _addCardManually();
             }),
             _buildAddOption(Icons.photo_library_outlined, 'Import from Gallery', 'Select card image from gallery', () async {
-              Navigator.pop(context);
+              final navigator = Navigator.of(context);
+              navigator.pop();
               final ImagePicker picker = ImagePicker();
               final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-              if (image != null && mounted) {
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (context) => ScannerScreen(initialMode: 0, initialImagePath: image.path),
-                ));
+              if (image == null || !mounted) {
+                return;
               }
+              navigator.push(
+                MaterialPageRoute(
+                  builder: (context) => ScannerScreen(initialMode: 0, initialImagePath: image.path),
+                ),
+              );
             }),
             const SizedBox(height: 12),
           ],
@@ -352,7 +353,7 @@ class _CardHolderScreenState extends State<CardHolderScreen> {
             leading: Container(
               width: 40, height: 40,
               decoration: BoxDecoration(color: const Color(0xFFE8F0FE), borderRadius: BorderRadius.circular(10)),
-              child: Center(child: Icon(Icons.business, color: const Color(0xFF007AFF), size: 20)),
+              child: const Center(child: Icon(Icons.business, color: Color(0xFF007AFF), size: 20)),
             ),
             title: Text(e.key, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
             subtitle: Text('${e.value.length} card${e.value.length > 1 ? "s" : ""}', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
@@ -391,7 +392,7 @@ class _CardHolderScreenState extends State<CardHolderScreen> {
 
   // ==== TAB 3: Management ====
   Widget _buildManagement() {
-    return CardManagementScreen();
+    return const CardManagementScreen();
   }
 
   // ==== Card List Item ====

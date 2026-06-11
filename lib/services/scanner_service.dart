@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -43,7 +44,7 @@ class ScannerService {
       );
       return photo?.path;
     } catch (e) {
-      print('Gallery picker failed: $e');
+      debugPrint('Gallery picker failed: $e');
       return null;
     }
   }
@@ -59,7 +60,7 @@ class ScannerService {
       }
       return null;
     } catch (e) {
-      print('Gallery picker failed: $e');
+      debugPrint('Gallery picker failed: $e');
       return null;
     }
   }

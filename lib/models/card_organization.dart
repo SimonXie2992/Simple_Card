@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// 名片数据模型 - 按照PRD V1.0定义（扩展版）
 class BusinessCard {
   final String id;
