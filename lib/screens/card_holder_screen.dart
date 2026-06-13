@@ -18,7 +18,6 @@ class _CardHolderScreenState extends State<CardHolderScreen> {
   final TextEditingController _searchController = TextEditingController();
   final List<BusinessCard> _allCards = <BusinessCard>[];
   List<BusinessCard> _filteredCards = <BusinessCard>[];
-  bool _isLoadingCards = true;
 
   @override
   void initState() {
@@ -35,14 +34,8 @@ class _CardHolderScreenState extends State<CardHolderScreen> {
   }
 
   Future<void> _loadCardsFromRepository() async {
-    try {
-      await appCardStore.ensureLoaded();
-      _syncCardsFromStore();
-    } finally {
-      if (mounted) {
-        setState(() => _isLoadingCards = false);
-      }
-    }
+    await appCardStore.ensureLoaded();
+    _syncCardsFromStore();
   }
 
   void _handleCardStoreChanged() {

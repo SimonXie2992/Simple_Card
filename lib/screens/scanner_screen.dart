@@ -49,11 +49,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   final List<String> _continuousImages = [];
 
   // Detection
-  Map<String, double>? _detectedCorners;
   Map<String, double>? _smoothedCorners; // Interpolated corners for smooth display
-  double _frameWidth = 0; // Raw camera frame width from native
-  double _frameHeight = 0; // Raw camera frame height from native
-  bool _isFrameRotated = true; // Whether Vision applied .right rotation
   bool _isStreaming = false;
   DateTime? _lastDetectionTime;
   bool _isDetecting = false;
@@ -271,7 +267,6 @@ class _ScannerScreenState extends State<ScannerScreen>
             : newCorners;
 
           setState(() {
-            _detectedCorners = newCorners;
             _smoothedCorners = smoothed;
           });
 
@@ -282,7 +277,7 @@ class _ScannerScreenState extends State<ScannerScreen>
         _consecutiveMisses++;
         _consecutiveDetections = 0;
         if (_consecutiveMisses >= _missThreshold) {
-          setState(() { _detectedCorners = null; _smoothedCorners = null; });
+          setState(() { _smoothedCorners = null; });
           _resetAutoCapture();
         }
       }
@@ -377,7 +372,6 @@ class _ScannerScreenState extends State<ScannerScreen>
             : newCorners;
 
           setState(() {
-            _detectedCorners = newCorners;
             _smoothedCorners = smoothed;
           });
 
@@ -387,7 +381,7 @@ class _ScannerScreenState extends State<ScannerScreen>
         _consecutiveMisses++;
         _consecutiveDetections = 0;
         if (_consecutiveMisses >= _missThreshold) {
-          setState(() { _detectedCorners = null; _smoothedCorners = null; });
+          setState(() { _smoothedCorners = null; });
           _resetAutoCapture();
         }
       }
@@ -510,7 +504,7 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   void _retake() {
     setState(() { _view = _ViewState.camera; _capturedPath = null; _correctedPath = null; _detectedType = null;
-      _detectedCorners = null; _smoothedCorners = null;
+      _smoothedCorners = null;
       _consecutiveDetections = 0; _consecutiveMisses = 0; });
     _resetAutoCapture();
     _startStream();
@@ -689,7 +683,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
   void _sharePdf() { if (_pdfPath != null) Share.shareXFiles([XFile(_pdfPath!)], text: 'Scanned Document'); }
   void _resetToCamera() { setState(() { _capturedPath = null; _correctedPath = null; _pdfPath = null; _detectedType = null; _view = _ViewState.camera; _continuousImages.clear(); _ocrBlocks.clear();
-    _detectedCorners = null; _smoothedCorners = null; _consecutiveDetections = 0; _consecutiveMisses = 0; }); _resetAutoCapture(); _startStream(); }
+    _smoothedCorners = null; _consecutiveDetections = 0; _consecutiveMisses = 0; }); _resetAutoCapture(); _startStream(); }
 
   // ═══════════════════════════════════════════════════
   //  BUILD

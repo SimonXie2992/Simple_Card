@@ -91,7 +91,7 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
             onPressed: () async {
               Navigator.pop(context);
               await appCardStore.deleteCard(card.id);
-              if (!mounted) {
+              if (!context.mounted) {
                 return;
               }
               Navigator.pop(context, 'deleted');
