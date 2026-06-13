@@ -30,7 +30,9 @@ A Flutter-based iOS app for scanning, managing, and sharing business cards and d
 - **Import / Export** — scan new cards, import from gallery
 
 ### ⚙️ Settings & Tools
-- **Notion Integration** — sync cards to a Notion database
+### Notion Integration Status
+
+Notion sync is currently disabled in runtime builds. The app validates local card scanning, review, and PDF workflows; Notion integration remains a future/disabled integration until configuration and release privacy review are completed.
 - **Tools** — additional utilities for card data management
 
 ## 🏗️ Architecture

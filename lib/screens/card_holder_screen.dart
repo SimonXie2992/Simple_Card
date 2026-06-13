@@ -4,6 +4,7 @@ import 'scanner_screen.dart';
 import '../models/card_organization.dart';
 import 'card_detail_screen.dart';
 import 'card_management_screen.dart';
+import '../state/card_store.dart';
 
 class CardHolderScreen extends StatefulWidget {
   const CardHolderScreen({super.key});
@@ -15,19 +16,74 @@ class CardHolderScreen extends StatefulWidget {
 class _CardHolderScreenState extends State<CardHolderScreen> {
   int _selectedTab = 0;
   final TextEditingController _searchController = TextEditingController();
-  final List<BusinessCard> _allCards = List.from(MockData.recentCards);
-  List<BusinessCard> _filteredCards = List.from(MockData.recentCards);
+  final List<BusinessCard> _allCards = <BusinessCard>[];
+  List<BusinessCard> _filteredCards = <BusinessCard>[];
+  bool _isLoadingCards = true;
 
-  void _performSearch(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        _filteredCards = List.from(_allCards);
-      });
+  @override
+  void initState() {
+    super.initState();
+    appCardStore.addListener(_handleCardStoreChanged);
+    _loadCardsFromRepository();
+  }
+
+  @override
+  void dispose() {
+    appCardStore.removeListener(_handleCardStoreChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadCardsFromRepository() async {
+    try {
+      await appCardStore.ensureLoaded();
+      _syncCardsFromStore();
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingCards = false);
+      }
+    }
+  }
+
+  void _handleCardStoreChanged() {
+    if (!mounted) {
       return;
     }
+    _syncCardsFromStore();
+  }
+
+  void _syncCardsFromStore() {
     setState(() {
-      _filteredCards = _allCards.where((c) => c.matchesQuery(query)).toList();
+      _allCards
+        ..clear()
+        ..addAll(appCardStore.cards);
+      _performSearch(_searchController.text, notify: false);
     });
+  }
+
+  void _performSearch(String query, {bool notify = true}) {
+    void applyFilter() {
+      if (query.trim().isEmpty) {
+        _filteredCards = List<BusinessCard>.from(_allCards);
+      } else {
+        final lower = query.trim().toLowerCase();
+        _filteredCards = _allCards.where((card) {
+          return card.name.toLowerCase().contains(lower) ||
+              (card.company?.toLowerCase().contains(lower) ?? false) ||
+              (card.title?.toLowerCase().contains(lower) ?? false) ||
+              (card.mobile?.toLowerCase().contains(lower) ?? false) ||
+              (card.phone?.toLowerCase().contains(lower) ?? false) ||
+              (card.tel?.toLowerCase().contains(lower) ?? false) ||
+              (card.email?.toLowerCase().contains(lower) ?? false);
+        }).toList();
+      }
+    }
+
+    if (notify) {
+      setState(applyFilter);
+    } else {
+      applyFilter();
+    }
   }
 
   void _showAddCardDialog() {
@@ -206,10 +262,12 @@ class _CardHolderScreenState extends State<CardHolderScreen> {
     });
   }
 
-  void _toggleFavorite(BusinessCard card) {
-    setState(() {
-      card.isFavorite = !card.isFavorite;
-    });
+  Future<void> _toggleFavorite(BusinessCard card) async {
+    final updated = await appCardStore.toggleFavorite(card.id);
+    if (updated == null || !mounted) {
+      return;
+    }
+    _syncCardsFromStore();
   }
 
   @override
@@ -398,7 +456,10 @@ class _CardHolderScreenState extends State<CardHolderScreen> {
   // ==== Card List Item ====
   Widget _buildCardItem(BusinessCard card, {bool inGroup = false}) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CardDetailScreen(card: card))),
+      onTap: () async {
+      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => CardDetailScreen(card: card)));
+      await appCardStore.reload();
+    },
       child: Container(
         margin: EdgeInsets.only(bottom: 8, left: inGroup ? 8 : 0, right: inGroup ? 8 : 0),
         padding: const EdgeInsets.all(14),

@@ -3,6 +3,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../models/card_organization.dart';
 import 'card_detail_screen.dart';
+import '../state/card_store.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int)? onTabSwitch;
@@ -15,23 +16,69 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
+  List<BusinessCard> _homeCards = <BusinessCard>[];
   List<BusinessCard> _searchResults = [];
   bool _isSearching = false;
 
-  void _performSearch(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        _searchResults = [];
-        _isSearching = false;
-      });
+  @override
+  void initState() {
+    super.initState();
+    appCardStore.addListener(_handleCardStoreChanged);
+    _loadHomeCards();
+  }
+
+  @override
+  void dispose() {
+    appCardStore.removeListener(_handleCardStoreChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadHomeCards() async {
+    await appCardStore.ensureLoaded();
+    _syncHomeCardsFromStore();
+  }
+
+  void _handleCardStoreChanged() {
+    if (!mounted) {
       return;
     }
+    _syncHomeCardsFromStore();
+  }
+
+  void _syncHomeCardsFromStore() {
     setState(() {
-      _isSearching = true;
-      _searchResults = MockData.recentCards
-          .where((card) => card.matchesQuery(query))
-          .toList();
+      _homeCards = List<BusinessCard>.from(appCardStore.cards);
+      _performSearch(_searchController.text, notify: false);
     });
+  }
+
+  void _performSearch(String query, {bool notify = true}) {
+    void applySearch() {
+      if (query.trim().isEmpty) {
+        _searchResults = [];
+        _isSearching = false;
+        return;
+      }
+
+      final lower = query.trim().toLowerCase();
+      _isSearching = true;
+      _searchResults = _homeCards.where((card) {
+        return card.name.toLowerCase().contains(lower) ||
+            (card.company?.toLowerCase().contains(lower) ?? false) ||
+            (card.title?.toLowerCase().contains(lower) ?? false) ||
+            (card.mobile?.toLowerCase().contains(lower) ?? false) ||
+            (card.phone?.toLowerCase().contains(lower) ?? false) ||
+            (card.tel?.toLowerCase().contains(lower) ?? false) ||
+            (card.email?.toLowerCase().contains(lower) ?? false);
+      }).toList();
+    }
+
+    if (notify) {
+      setState(applySearch);
+    } else {
+      applySearch();
+    }
   }
 
   void _showNotifications() {
@@ -451,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          ...MockData.recentCards.take(3).map((card) => _buildRecentScanItem(card)),
+          ..._homeCards.take(3).map((card) => _buildRecentScanItem(card)),
         ],
       ),
     );

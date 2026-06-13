@@ -30,8 +30,6 @@
 	<string>Professional Vision OCR requires high-performance camera access</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Professional Vision OCR requires photo library access</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This app does not use the microphone</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

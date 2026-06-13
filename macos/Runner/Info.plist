@@ -28,7 +28,7 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-<key>NSCameraUsageDescription</key><string>Need camera access to scan business cards</string>
-<key>NSMicrophoneUsageDescription</key><string>Need microphone access for full media support</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Need camera access to scan business cards</string>
 </dict>
 </plist>

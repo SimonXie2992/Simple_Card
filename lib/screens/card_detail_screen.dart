@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../models/card_organization.dart';
 import 'card_edit_screen.dart';
+import '../state/card_store.dart';
 
 class CardDetailScreen extends StatefulWidget {
   final BusinessCard card;
@@ -67,8 +68,12 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
     );
   }
 
-  void _toggleFavorite() {
-    setState(() { card.isFavorite = !card.isFavorite; });
+  Future<void> _toggleFavorite() async {
+    final updated = await appCardStore.toggleFavorite(card.id);
+    if (updated == null || !mounted) {
+      return;
+    }
+    setState(() { card = updated; });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(card.isFavorite ? 'Added to favorites' : 'Removed from favorites'), backgroundColor: const Color(0xFF007AFF), duration: const Duration(seconds: 1)),
     );
@@ -83,7 +88,14 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           TextButton(
-            onPressed: () { Navigator.pop(context); Navigator.pop(context); },
+            onPressed: () async {
+              Navigator.pop(context);
+              await appCardStore.deleteCard(card.id);
+              if (!mounted) {
+                return;
+              }
+              Navigator.pop(context, 'deleted');
+            },
             child: const Text('Delete', style: TextStyle(color: Color(0xFFFF3B30))),
           ),
         ],
@@ -123,7 +135,11 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
       MaterialPageRoute(builder: (_) => CardEditScreen(card: card)),
     );
     if (result != null) {
-      setState(() { card = result; });
+      final saved = await appCardStore.upsertCard(result);
+      if (!mounted) {
+        return;
+      }
+      setState(() { card = saved; });
     }
   }
 

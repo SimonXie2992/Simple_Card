@@ -29,6 +29,7 @@
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		64B04C9C5FDC6944506902B0 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4ACDFE6F37FD30CB0554D4 /* Pods_RunnerTests.framework */; };
 		ADD32F6818EF5D9E68B356F5 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E8494870577355EEDF95C919 /* Pods_Runner.framework */; };
+		8B91703BFA05D15DAFDA646F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BACBA6708FCF4E7C21EC107D /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +89,7 @@
 		CDCA4B8E72B2E0DDCAE30203 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		DCC7CB7605A2EB4D20BC6B02 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		E8494870577355EEDF95C919 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BACBA6708FCF4E7C21EC107D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -317,6 +319,7 @@
 			files = (
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
+				8B91703BFA05D15DAFDA646F /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

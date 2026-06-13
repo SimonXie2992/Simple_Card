@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../services/scanner_service.dart';
+import '../models/card_organization.dart';
+import '../state/card_store.dart';
 
 // Scanner view states
 enum _ViewState { camera, processing, confirm, cardReview, pdfResult }
@@ -647,7 +649,44 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
   }
 
-  void _saveCard() { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Card Saved!'))); Navigator.pop(context); }
+  Future<void> _saveCard() async {
+    final name = _name.trim().isEmpty ? 'Unknown Contact' : _name.trim();
+    final card = BusinessCard(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      name: name,
+      company: _company.trim().isEmpty ? null : _company.trim(),
+      title: _title.trim().isEmpty ? null : _title.trim(),
+      mobile: _mobile.trim().isEmpty ? null : _mobile.trim(),
+      email: _email.trim().isEmpty ? null : _email.trim(),
+      website: _website.trim().isEmpty ? null : _website.trim(),
+      address: _address.trim().isEmpty ? null : _address.trim(),
+      imageUrls: [
+        if (_correctedPath != null) _correctedPath!,
+        if (_correctedPath == null && _capturedPath != null) _capturedPath!,
+      ],
+      notes: _ocrBlocks.isEmpty
+          ? null
+          : _ocrBlocks.map((block) => block.text).join('\\n'),
+    );
+
+    try {
+      await appCardStore.upsertCard(card);
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Card saved')),
+      );
+      Navigator.pop(context, card);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save card: $error')),
+      );
+    }
+  }
   void _sharePdf() { if (_pdfPath != null) Share.shareXFiles([XFile(_pdfPath!)], text: 'Scanned Document'); }
   void _resetToCamera() { setState(() { _capturedPath = null; _correctedPath = null; _pdfPath = null; _detectedType = null; _view = _ViewState.camera; _continuousImages.clear(); _ocrBlocks.clear();
     _detectedCorners = null; _smoothedCorners = null; _consecutiveDetections = 0; _consecutiveMisses = 0; }); _resetAutoCapture(); _startStream(); }
