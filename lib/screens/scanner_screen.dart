@@ -114,6 +114,15 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
   }
 
+  bool get _nativeScannerBridgeAvailable => !Platform.isMacOS;
+
+  void _showUnsupportedOnMacOS([String feature = 'Scanner/OCR/PDF processing']) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$feature is not available on macOS yet. Please use iOS for scanning.')),
+    );
+  }
+
   @override
   void dispose() {
     SystemChrome.setPreferredOrientations([
@@ -343,51 +352,8 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   void _onFrameMacos(CameraImageData image) {
     if (_isDetecting || _isAutoCapturing) return;
-    final now = DateTime.now();
-    if (_lastDetectionTime != null && now.difference(_lastDetectionTime!) < const Duration(milliseconds: 80)) return;
-    _lastDetectionTime = now;
     _isDetecting = true;
-
-    platform.invokeMethod('detectRectangleLive', {
-      'bytes': image.bytes,
-      'width': image.width,
-      'height': image.height,
-      'bytesPerRow': image.bytesPerRow,
-    }).then((result) {
-      if (!mounted) return;
-      if (result != null) {
-        _consecutiveDetections++;
-        _consecutiveMisses = 0;
-        final allData = Map<String, double>.from(result as Map);
-        
-        allData.remove('frameWidth');
-        allData.remove('frameHeight');
-        allData.remove('isRotated');
-        
-        final newCorners = allData;
-
-        if (_consecutiveDetections >= _detectionThreshold) {
-          final smoothed = _smoothedCorners != null
-            ? _lerpCorners(_smoothedCorners!, newCorners, 0.5) 
-            : newCorners;
-
-          setState(() {
-            _smoothedCorners = smoothed;
-          });
-
-          _checkAutoCapture(newCorners);
-        }
-      } else {
-        _consecutiveMisses++;
-        _consecutiveDetections = 0;
-        if (_consecutiveMisses >= _missThreshold) {
-          setState(() { _smoothedCorners = null; });
-          _resetAutoCapture();
-        }
-      }
-    }).catchError((e) {
-      debugPrint('Detection error: $e');
-    }).whenComplete(() => _isDetecting = false);
+    _isDetecting = false;
   }
 
   // ═══════════════════════════════════════════════════
@@ -431,15 +397,8 @@ class _ScannerScreenState extends State<ScannerScreen>
         }
 
         setState(() => _processingMsg = 'Processing...');
-        final result = await platform.invokeMethod('processCapture', path);
-        final map = Map<String, dynamic>.from(result);
-
-        setState(() {
-          _capturedPath = path;
-          _correctedPath = map['correctedPath'] as String?;
-          _detectedType = map['type'] as String?;
-          _view = _ViewState.confirm;
-        });
+        _showUnsupportedOnMacOS('Capture processing');
+        setState(() { _view = _ViewState.camera; });
       } catch (e) {
         debugPrint('Capture error: $e');
         setState(() { _view = _ViewState.camera; });
@@ -526,6 +485,12 @@ class _ScannerScreenState extends State<ScannerScreen>
     if (path == null) return;
     _stopStream();
     setState(() { _view = _ViewState.processing; _processingMsg = 'Analyzing image...'; });
+    if (Platform.isMacOS) {
+      _showUnsupportedOnMacOS('Gallery processing');
+      setState(() { _view = _ViewState.camera; });
+      _startStream();
+      return;
+    }
     try {
       final result = await platform.invokeMethod('processCapture', path);
       final map = Map<String, dynamic>.from(result);
@@ -542,6 +507,12 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   Future<void> _generatePdf(List<String> paths) async {
+    if (Platform.isMacOS) {
+      _showUnsupportedOnMacOS('PDF generation');
+      setState(() { _view = _ViewState.camera; });
+      _startStream();
+      return;
+    }
     try {
       final String pdfPath = await platform.invokeMethod('generatePdf', paths);
       if (mounted) setState(() { _pdfPath = pdfPath; _view = _ViewState.pdfResult; _continuousImages.clear(); });
@@ -552,6 +523,11 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   Future<void> _processOcr(String path) async {
+    if (Platform.isMacOS) {
+      _showUnsupportedOnMacOS('OCR processing');
+      if (mounted) setState(() => _view = _ViewState.cardReview);
+      return;
+    }
     try {
       final bytes = await File(path).readAsBytes();
       final String jsonStr = await platform.invokeMethod('processImage', bytes);
